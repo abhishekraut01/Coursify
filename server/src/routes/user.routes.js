@@ -14,24 +14,22 @@ userRouter.post('/logout', (req, res) => {
   // Logic for logging out
 });
 
+userRouter.post('/courses/:courseId', (req, res) => {
+    //logic for purchase course
+});
+
 // GET route to fetch courses (reading data)
 userRouter.get('/courses', (req, res) => {
   // Logic to get all courses
 });
 
-// POST route to create a new course (adding a resource)
-userRouter.post('/courses', (req, res) => {
-  // Logic for adding a new course
-});
-
-// PUT route for updating a course (modify an existing resource)
-userRouter.put('/courses/:id', (req, res) => {
-  // Logic for updating a course
+userRouter.get('/courses/purchasedCourses', (req, res) => {
+  // Logic to get all courses
 });
 
 // DELETE route for deleting a course (removing a resource)
-userRouter.delete('/courses/:id', (req, res) => {
-  // Logic for deleting a course
+userRouter.delete('/courses/:courseId', (req, res) => {
+  // Logic for deleting a purchased course
 });
 
 export default userRouter;
