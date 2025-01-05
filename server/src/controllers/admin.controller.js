@@ -1,7 +1,8 @@
 import { handleHashPassword } from '../utils/encyption.js';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/admin.model.js'; // Example path
-import { loginSchema, SignUpSchema } from '../utils/validationSchema.js';
+import Courses from '../models/courses.model.js';
+import { courseSchema, loginSchema, SignUpSchema } from '../utils/validationSchema.js';
 import bcrypt from 'bcryptjs';
 
 export const adminSignUp = async (req, res, next) => {
@@ -136,12 +137,71 @@ export const adminLogout = async (req, res) => {
 };
 
 export const adminGetCourses = async (req, res) => {
-  
+  try {
+    const allCourses = await Courses.find({});
+
+    if (allCourses.length === 0) {
+      return res.status(404).json({
+        message: 'No courses found',
+      });
+    }
+
+    res.status(200).json({
+      message: 'All courses fetched successfully',
+      courses: allCourses,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const adminAddCourses = async (req, res) => {
-  // Logic for adding a new course
+export const adminAddCourses = async (req, res, next) => {
+  // Validate input using courseSchema
+  const validationResult = courseSchema.safeParse(req.body);
+
+  if (!validationResult.success) {
+    return res.status(400).json({
+      message: 'Invalid input',
+      errors: validationResult.error.errors,
+    });
+  }
+
+  const { title, description, price, imageLink, published } = req.body;
+
+  try {
+    // Ensure that the admin is set in the request (from the authentication middleware)
+    const adminId = req.admin?._id;
+
+    if (!adminId) {
+      return res.status(403).json({
+        message: 'Admin authentication required',
+      });
+    }
+
+    // Create the course
+    const newCourse = new Courses({
+      title,
+      description,
+      price,
+      imageLink,
+      createdBy: adminId, // Associate the course with the admin
+      published: published || false, // Default to false if not provided
+    });
+
+    // Save the new course
+    const savedCourse = await newCourse.save();
+
+    // Send success response with course ID
+    res.status(201).json({
+      message: 'Course created successfully',
+      courseId: savedCourse._id,
+    });
+  } catch (error) {
+    console.error('Error creating course:', error);
+    next(error); // Pass the error to error-handling middleware
+  }
 };
+
 
 export const adminUpdateCourse = async (req, res) => {
   // Logic for updating a course

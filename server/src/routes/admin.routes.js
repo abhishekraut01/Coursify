@@ -21,12 +21,12 @@ adminRouter.post('/logout', adminLogout);
 adminRouter.get('/courses', adminGetCourses);
 
 // POST route to create a new course (adding a resource)
-adminRouter.post('/courses', adminAddCourses);
+adminRouter.post('/courses',handleAdminAuth, adminAddCourses);
 
 // PUT route for updating a course (modify an existing resource)
-adminRouter.put('/courses/:courseId', adminUpdateCourse);
+adminRouter.put('/courses/:courseId', handleAdminAuth, adminUpdateCourse);
 
 // DELETE route for deleting a course (removing a resource)
-adminRouter.delete('/courses/:courseId', adminDeleteCourse);
+adminRouter.delete('/courses/:courseId',handleAdminAuth , adminDeleteCourse);
 
 export default adminRouter;
