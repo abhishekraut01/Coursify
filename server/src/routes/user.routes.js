@@ -1,35 +1,30 @@
 import express from 'express';
 const userRouter = express.Router();
+import {
+  userSignUp,
+  userLogin,
+  userLogout,
+  userPurchaseCourse,
+  userGetAllCourses,
+  userGetPurchasedCourses,
+  userDeletePurchasedCourse,
+} from '../controllers/user.controller';
 
 // POST routes for creating resources or performing actions
-userRouter.post('/signup', (req, res) => {
-  // Logic for signing up
-});
+userRouter.post('/signup', userSignUp);
 
-userRouter.post('/login', (req, res) => {
-  // Logic for logging in
-});
+userRouter.post('/login', userLogin);
 
-userRouter.post('/logout', (req, res) => {
-  // Logic for logging out
-});
+userRouter.post('/logout', userLogout);
 
-userRouter.post('/courses/:courseId', (req, res) => {
-    //logic for purchase course
-});
+userRouter.post('/courses/:courseId', userPurchaseCourse);
 
 // GET route to fetch courses (reading data)
-userRouter.get('/courses', (req, res) => {
-  // Logic to get all courses
-});
+userRouter.get('/courses', userGetAllCourses);
 
-userRouter.get('/courses/purchasedCourses', (req, res) => {
-  // Logic to get all courses
-});
+userRouter.get('/courses/purchasedCourses', userGetPurchasedCourses);
 
 // DELETE route for deleting a course (removing a resource)
-userRouter.delete('/courses/:courseId', (req, res) => {
-  // Logic for deleting a purchased course
-});
+userRouter.delete('/courses/:courseId', userDeletePurchasedCourse);
 
 export default userRouter;
