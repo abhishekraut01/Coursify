@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import adminController from './controllers/adminController.js';
-import userController from './controllers/userController.js';
 import errorMiddleware from './middlewares/errorMiddleware.js'; 
+import adminRouter from './routes/admin.routes.js';
+import userRouter from './routes/user.routes.js';
 
 const app = express();
 
@@ -15,8 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // Routes
-app.use('/api/v1/admin', adminController);
-app.use('/api/v1/user', userController);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/user', userRouter);
 
 // Global Error Handler - Catch any unhandled errors from routes
 app.use(errorMiddleware);
