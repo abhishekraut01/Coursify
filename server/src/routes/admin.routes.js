@@ -8,7 +8,7 @@ import {
   adminAddCourses,
   adminUpdateCourse,
   adminDeleteCourse,
-} from '../controllers/admin.controller';
+} from '../controllers/admin.controller.js';
 
 // POST routes for creating resources or performing actions
 adminRouter.post('/signup', adminSignUp);

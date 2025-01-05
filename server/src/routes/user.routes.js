@@ -8,7 +8,7 @@ import {
   userGetAllCourses,
   userGetPurchasedCourses,
   userDeletePurchasedCourse,
-} from '../controllers/user.controller';
+} from '../controllers/user.controller.js';
 
 // POST routes for creating resources or performing actions
 userRouter.post('/signup', userSignUp);
