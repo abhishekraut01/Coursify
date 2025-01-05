@@ -1,7 +1,8 @@
 import { handleHashPassword } from '../utils/encyption.js';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/admin.model.js'; // Example path
-import { SignUpSchema } from '../utils/validationSchema.js'
+import { loginSchema, SignUpSchema } from '../utils/validationSchema.js'
+import bcrypt from 'bcryptjs'
 
 export const adminSignUp = async (req, res, next) => {
   const validationResponse = SignUpSchema.safeParse(req.body);
@@ -59,10 +60,63 @@ export const adminSignUp = async (req, res, next) => {
   }
 };
 
+// adminLoginWorkflow -> user will send the username and password and we will find is admin is availabe in database or not if yes then we will compare hashed password with plain password and all things are good then we will send the jwt token to user
 
-export const adminLogin = async (req, res) => {
-  // Logic for logging in
+export const adminLogin = async (req, res, next) => {
+  const validationResponse = loginSchema.safeParse(req.body);
+
+  if (!validationResponse.success) {
+    return res.status(400).json({
+      success: false,
+      message: 'Input is invalid, please try again.',
+      errors: validationResponse.error.errors, 
+    });
+  }
+
+  const { username, password } = req.body;
+
+  try {
+    // Check if user exists
+    const isUserExist = await Admin.findOne({ username });
+    if (!isUserExist) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid username or password.',
+      });
+    }
+
+    // Validate password
+    const validatePassword = await bcrypt.compare(password, isUserExist.password);
+    if (!validatePassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid username or password.',
+      });
+    }
+
+    // Create and send JWT
+    const token = jwt.sign({ adminId: isUserExist._id }, process.env.JWT_KEY, {
+      expiresIn: '1d', // Token valid for 1 day
+    });
+
+    res
+      .status(200) 
+      .cookie('jwt', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      })
+      .json({
+        success: true,
+        message: 'Admin logged in successfully.',
+      });
+  } catch (error) {
+    console.error('Error in Login controller:', error);
+    next(error); 
+  }
 };
+
 
 export const adminLogout = async (req, res) => {
   // Logic for logging out

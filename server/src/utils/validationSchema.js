@@ -6,4 +6,7 @@ export const SignUpSchema = zod.object({
     password:zod.string().min(8)
 })
 
-
+export const loginSchema = zod.object({
+    username:zod.string().min(3),
+    password:zod.string().min(8)
+})
