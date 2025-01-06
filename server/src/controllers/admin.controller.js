@@ -201,6 +201,7 @@ export const adminAddCourses = async (req, res, next) => {
 
 
 export const adminUpdateCourse = async (req, res, next) => {
+   
   const validationResult = updateCourseSchema.safeParse(req.body);
 
   if (!validationResult.success) {
@@ -211,11 +212,10 @@ export const adminUpdateCourse = async (req, res, next) => {
   }
 
   const { title, description, price, imageLink, published } = req.body;
-  const { id: courseId } = req.params; 
+  const { courseId } = req.params; // Extract courseId from route parameters
 
   try {
-    
-    const adminId = req.admin?._id;
+    const adminId = req.admin?.adminId; // Get the admin ID from authenticated user
 
     if (!adminId) {
       return res.status(403).json({
@@ -223,6 +223,7 @@ export const adminUpdateCourse = async (req, res, next) => {
       });
     }
 
+    // Find the course by ID
     const course = await Courses.findById(courseId);
 
     if (!course) {
@@ -231,35 +232,76 @@ export const adminUpdateCourse = async (req, res, next) => {
       });
     }
 
+    // Ensure the admin updating the course is the one who created it
     if (course.createdBy.toString() !== adminId.toString()) {
       return res.status(403).json({
         message: 'You are not authorized to update this course',
       });
     }
 
-    const updatedCourse = await Courses.findByIdAndUpdate(
-      courseId,
-      {
-        title,
-        description,
-        price,
-        imageLink,
-        published: published || course.published, 
-      },
-      { new: true } 
-    );
+    // Update the course fields
+    const updates = {
+      title: title || course.title,
+      description: description || course.description,
+      price: price ?? course.price, // Allow price to be 0
+      imageLink: imageLink || course.imageLink,
+      published: published ?? course.published,
+    };
 
-    
+    // Save the updated course
+    const updatedCourse = await Courses.findByIdAndUpdate(courseId, updates, { new: true });
+
     res.status(200).json({
       message: 'Course updated successfully',
       updatedCourse,
     });
   } catch (error) {
     console.error('Error updating course:', error);
-    next(error); 
+    next(error); // Forward the error to the error-handling middleware
   }
 };
 
-export const adminDeleteCourse = async (req, res) => {
 
+export const adminDeleteCourse = async (req, res, next) => {
+  const { courseId } = req.params;
+
+  try {
+    // Extract adminId from the authenticated user
+    const adminId = req.admin?.adminId;
+
+    if (!adminId) {
+      return res.status(403).json({
+        message: 'Admin authentication required',
+      });
+    }
+
+    // Find the course by ID
+    const course = await Courses.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        message: 'Course not found',
+      });
+    }
+
+    // Ensure the admin deleting the course is the one who created it
+    if (course.createdBy.toString() !== adminId.toString()) {
+      return res.status(403).json({
+        message: 'You are not authorized to delete this course',
+      });
+    }
+
+    // Delete the course
+    const deletedCourse = await Courses.findByIdAndDelete(courseId);
+
+    res.status(200).json({
+      message: 'Course deleted successfully',
+      deletedCourse,
+    });
+
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    next(error); // Forward the error to the error-handling middleware
+  }
 };
+

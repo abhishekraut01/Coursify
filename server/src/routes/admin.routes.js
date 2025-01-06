@@ -24,7 +24,7 @@ adminRouter.get('/courses', adminGetCourses);
 adminRouter.post('/courses',handleAdminAuth, adminAddCourses);
 
 // PUT route for updating a course (modify an existing resource)
-adminRouter.put('/courses/:courseId', handleAdminAuth, adminUpdateCourse);
+adminRouter.patch('/courses/:courseId', handleAdminAuth, adminUpdateCourse);
 
 // DELETE route for deleting a course (removing a resource)
 adminRouter.delete('/courses/:courseId',handleAdminAuth , adminDeleteCourse);
