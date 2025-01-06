@@ -17,3 +17,12 @@ export const courseSchema = zod.object({
     imageLink:zod.string(),
     price:zod.number()
 })
+
+export const updateCourseSchema = zod.object({
+    title: zod.string().min(3).max(100).optional(),
+    description: zod.string().min(10).optional(),
+    imageLink: zod.string().url().optional(),
+    price: zod.number().min(0).optional(),
+    published: zod.boolean().optional(),
+  });
+  

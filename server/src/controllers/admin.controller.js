@@ -1,8 +1,8 @@
 import { handleHashPassword } from '../utils/encyption.js';
 import jwt from 'jsonwebtoken';
-import Admin from '../models/admin.model.js'; // Example path
+import Admin from '../models/admin.model.js';
 import Courses from '../models/courses.model.js';
-import { courseSchema, loginSchema, SignUpSchema } from '../utils/validationSchema.js';
+import { courseSchema, loginSchema, SignUpSchema, updateCourseSchema } from '../utils/validationSchema.js';
 import bcrypt from 'bcryptjs';
 
 export const adminSignUp = async (req, res, next) => {
@@ -18,7 +18,7 @@ export const adminSignUp = async (req, res, next) => {
   const { username, password, email } = req.body;
 
   try {
-    // Check if user already exists
+    
     const isUserAlreadyExist = await Admin.findOne({ username });
     if (isUserAlreadyExist) {
       return res.status(409).json({
@@ -29,7 +29,7 @@ export const adminSignUp = async (req, res, next) => {
 
     const hashPass = await handleHashPassword(password);
 
-    // Create a new admin
+    
     const newAdmin = new Admin({
       username,
       email,
@@ -38,8 +38,8 @@ export const adminSignUp = async (req, res, next) => {
 
     await newAdmin.save();
 
-    // Create and send JWT
-    const token = jwt.sign({ userId: newAdmin._id }, process.env.JWT_KEY, {
+    
+    const token = jwt.sign({ adminId: newAdmin._id }, process.env.JWT_KEY, {
       expiresIn: '1d',
     });
 
@@ -49,7 +49,7 @@ export const adminSignUp = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        maxAge: 24 * 60 * 60 * 1000, 
       })
       .json({
         success: true,
@@ -77,7 +77,7 @@ export const adminLogin = async (req, res, next) => {
   const { username, password } = req.body;
 
   try {
-    // Check if user exists
+
     const isUserExist = await Admin.findOne({ username });
     if (!isUserExist) {
       return res.status(401).json({
@@ -86,7 +86,6 @@ export const adminLogin = async (req, res, next) => {
       });
     }
 
-    // Validate password
     const validatePassword = await bcrypt.compare(
       password,
       isUserExist.password
@@ -98,9 +97,8 @@ export const adminLogin = async (req, res, next) => {
       });
     }
 
-    // Create and send JWT
     const token = jwt.sign({ adminId: isUserExist._id }, process.env.JWT_KEY, {
-      expiresIn: '1d', // Token valid for 1 day
+      expiresIn: '1d', 
     });
 
     res
@@ -109,7 +107,7 @@ export const adminLogin = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        maxAge: 24 * 60 * 60 * 1000, 
       })
       .json({
         success: true,
@@ -122,15 +120,14 @@ export const adminLogin = async (req, res, next) => {
 };
 
 export const adminLogout = async (req, res) => {
-  // Clear the JWT cookie by setting it to expire immediately
-  res.cookie('jwt', '', {
-    httpOnly: true, // Ensures cookie is not accessible via JavaScript
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    sameSite: 'strict', // Ensures cookies are sent in same-site requests
-    expires: new Date(0), // Sets the cookie expiration to the past
-  });
 
-  // Send response
+  res.cookie('jwt', '', {
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === 'production', 
+    sameSite: 'strict', 
+    expires: new Date(0), 
+  }); 
+
   res.status(200).json({
     message: 'Logged out successfully',
   });
@@ -203,10 +200,66 @@ export const adminAddCourses = async (req, res, next) => {
 };
 
 
-export const adminUpdateCourse = async (req, res) => {
-  // Logic for updating a course
+export const adminUpdateCourse = async (req, res, next) => {
+  const validationResult = updateCourseSchema.safeParse(req.body);
+
+  if (!validationResult.success) {
+    return res.status(400).json({
+      message: 'Invalid input',
+      errors: validationResult.error.errors,
+    });
+  }
+
+  const { title, description, price, imageLink, published } = req.body;
+  const { id: courseId } = req.params; 
+
+  try {
+    
+    const adminId = req.admin?._id;
+
+    if (!adminId) {
+      return res.status(403).json({
+        message: 'Admin authentication required',
+      });
+    }
+
+    const course = await Courses.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        message: 'Course not found',
+      });
+    }
+
+    if (course.createdBy.toString() !== adminId.toString()) {
+      return res.status(403).json({
+        message: 'You are not authorized to update this course',
+      });
+    }
+
+    const updatedCourse = await Courses.findByIdAndUpdate(
+      courseId,
+      {
+        title,
+        description,
+        price,
+        imageLink,
+        published: published || course.published, 
+      },
+      { new: true } 
+    );
+
+    
+    res.status(200).json({
+      message: 'Course updated successfully',
+      updatedCourse,
+    });
+  } catch (error) {
+    console.error('Error updating course:', error);
+    next(error); 
+  }
 };
 
 export const adminDeleteCourse = async (req, res) => {
-  // Logic for deleting a course
+
 };
