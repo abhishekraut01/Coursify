@@ -2,7 +2,12 @@ import { handleHashPassword } from '../utils/encyption.js';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/admin.model.js';
 import Courses from '../models/courses.model.js';
-import { courseSchema, loginSchema, SignUpSchema, updateCourseSchema } from '../utils/validationSchema.js';
+import {
+  courseSchema,
+  loginSchema,
+  SignUpSchema,
+  updateCourseSchema,
+} from '../utils/validationSchema.js';
 import bcrypt from 'bcryptjs';
 
 export const adminSignUp = async (req, res, next) => {
@@ -18,7 +23,6 @@ export const adminSignUp = async (req, res, next) => {
   const { username, password, email } = req.body;
 
   try {
-    
     const isUserAlreadyExist = await Admin.findOne({ username });
     if (isUserAlreadyExist) {
       return res.status(409).json({
@@ -29,7 +33,6 @@ export const adminSignUp = async (req, res, next) => {
 
     const hashPass = await handleHashPassword(password);
 
-    
     const newAdmin = new Admin({
       username,
       email,
@@ -38,7 +41,6 @@ export const adminSignUp = async (req, res, next) => {
 
     await newAdmin.save();
 
-    
     const token = jwt.sign({ adminId: newAdmin._id }, process.env.JWT_KEY, {
       expiresIn: '1d',
     });
@@ -49,7 +51,7 @@ export const adminSignUp = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, 
+        maxAge: 24 * 60 * 60 * 1000,
       })
       .json({
         success: true,
@@ -77,7 +79,6 @@ export const adminLogin = async (req, res, next) => {
   const { username, password } = req.body;
 
   try {
-
     const isUserExist = await Admin.findOne({ username });
     if (!isUserExist) {
       return res.status(401).json({
@@ -98,7 +99,7 @@ export const adminLogin = async (req, res, next) => {
     }
 
     const token = jwt.sign({ adminId: isUserExist._id }, process.env.JWT_KEY, {
-      expiresIn: '1d', 
+      expiresIn: '1d',
     });
 
     res
@@ -107,7 +108,7 @@ export const adminLogin = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, 
+        maxAge: 24 * 60 * 60 * 1000,
       })
       .json({
         success: true,
@@ -120,13 +121,12 @@ export const adminLogin = async (req, res, next) => {
 };
 
 export const adminLogout = async (req, res) => {
-
   res.cookie('jwt', '', {
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
-    sameSite: 'strict', 
-    expires: new Date(0), 
-  }); 
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: new Date(0),
+  });
 
   res.status(200).json({
     message: 'Logged out successfully',
@@ -199,9 +199,7 @@ export const adminAddCourses = async (req, res, next) => {
   }
 };
 
-
 export const adminUpdateCourse = async (req, res, next) => {
-   
   const validationResult = updateCourseSchema.safeParse(req.body);
 
   if (!validationResult.success) {
@@ -249,7 +247,9 @@ export const adminUpdateCourse = async (req, res, next) => {
     };
 
     // Save the updated course
-    const updatedCourse = await Courses.findByIdAndUpdate(courseId, updates, { new: true });
+    const updatedCourse = await Courses.findByIdAndUpdate(courseId, updates, {
+      new: true,
+    });
 
     res.status(200).json({
       message: 'Course updated successfully',
@@ -260,7 +260,6 @@ export const adminUpdateCourse = async (req, res, next) => {
     next(error); // Forward the error to the error-handling middleware
   }
 };
-
 
 export const adminDeleteCourse = async (req, res, next) => {
   const { courseId } = req.params;
@@ -298,10 +297,8 @@ export const adminDeleteCourse = async (req, res, next) => {
       message: 'Course deleted successfully',
       deletedCourse,
     });
-
   } catch (error) {
     console.error('Error deleting course:', error);
     next(error); // Forward the error to the error-handling middleware
   }
 };
-
