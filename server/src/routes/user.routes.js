@@ -17,7 +17,7 @@ userRouter.post('/login', userLogin);
 
 userRouter.post('/logout', userLogout);
 
-userRouter.post('/courses/:courseId', userPurchaseCourse);
+userRouter.patch('/courses/:courseId', userPurchaseCourse);
 
 // GET route to fetch courses (reading data)
 userRouter.get('/courses', userGetAllCourses);
