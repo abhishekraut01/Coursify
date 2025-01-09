@@ -1,4 +1,5 @@
 import express from 'express';
+import upload from '../middlewares/multer.middleware.js'
 const adminRouter = express.Router();
 import {
   adminSignUp,
@@ -11,7 +12,12 @@ import {
 } from '../controllers/admin.controller.js';
 
 // POST routes for creating resources or performing actions
-adminRouter.post('/signup', adminSignUp);
+adminRouter.post('/signup',upload.fields([
+  {
+    name:"profilePicture",
+    maxCount:1
+  }
+]), adminSignUp);
 
 adminRouter.post('/login', adminLogin);
 

@@ -1,58 +1,77 @@
 import Courses from '../models/courses.model';
 import User from '../models/user.model';
+import AppError from '../utils/AppError';
+import uploadToCloudinary from '../utils/Cloudinary';
+import ApiResponse from '../utils/ApiResponse';
+import asyncHandler from '../utils/AsyncHandler';
 
-export const userSignUp = async (req, res) => {
+export const userSignUp = asyncHandler( async (req, res) => {
   const validationResponse = SignUpSchema.safeParse(req.body);
 
+  //step 1 validation for user input
   if (!validationResponse.success) {
-    return res.status(400).json({
-      success: false,
-      message: 'Input is invalid, please try again.',
-    });
+    throw new AppError(
+      'Input is invalid',
+      403,
+      validationResponse.errors.error
+    );
   }
 
   const { username, password, email } = req.body;
 
-  try {
-    const isUserAlreadyExist = await User.findOne({ username });
-    if (isUserAlreadyExist) {
-      return res.status(409).json({
-        success: false,
-        message: 'User already exists.',
-      });
-    }
+  //step 2: check for the existing user present or not
 
-    const hashPass = await handleHashPassword(password);
+  const existingUser = await User.findOne({
+    $or: [{ username }, { email }],
+  });
 
-    const newUser = new User({
-      username,
-      email,
-      password: hashPass,
-    });
-
-    await newUser.save();
-
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_KEY, {
-      expiresIn: '1d',
-    });
-
-    res
-      .status(201)
-      .cookie('jwt', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000,
-      })
-      .json({
-        success: true,
-        message: 'User created successfully.',
-      });
-  } catch (error) {
-    console.error('Error in UserSignUp controller:', error);
-    next(error);
+  if (existingUser) {
+    throw new AppError('User already exist', 409);
   }
-};
+
+  //setp 3: handle upload profile picture upload on local storage
+
+  const localProfilePicturePath = req.files?.profilePicture?.[0]?.path;
+
+  if (!localProfilePicturePath) {
+    throw new AppError('something went wrong while uploading profile', 400);
+  }
+
+  //setp 4: Upload profile picture on cloudinary
+
+  const profilePicture = await uploadToCloudinary(localProfilePicturePath);
+
+  if (!profilePicture) {
+    throw new AppError('unable to upload profilePicture' , 400);
+  }
+
+  //step 5 create new user
+
+  const newUser = await User.create({
+    username,
+    email,
+    password,
+    profilePicture
+  });
+
+  //step 6 remove sensitive field from the user
+
+  const newCreatedUser = await User.findById(newUser._id).select(
+    '-password - refreshToken'
+  )
+
+  if(!newCreatedUser){
+    throw new AppError("Error while creating user",500)
+  }
+
+  //step 7: send response to frontend
+  res.status(201).json(
+    new ApiResponse(200 , "user signup successfully" , newCreatedUser)
+  )
+})
+
+
+
 
 export const userLogin = async (req, res) => {
   const validationResponse = loginSchema.safeParse(req.body);
