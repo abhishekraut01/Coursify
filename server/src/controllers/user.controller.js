@@ -1,5 +1,5 @@
 import Courses from '../models/courses.model';
-import User from '../models/user.model'
+import User from '../models/user.model';
 
 export const userSignUp = async (req, res) => {
   const validationResponse = SignUpSchema.safeParse(req.body);
@@ -53,7 +53,6 @@ export const userSignUp = async (req, res) => {
     next(error);
   }
 };
-
 
 export const userLogin = async (req, res) => {
   const validationResponse = loginSchema.safeParse(req.body);
@@ -111,7 +110,6 @@ export const userLogin = async (req, res) => {
   }
 };
 
-
 export const userLogout = async (req, res) => {
   res.cookie('jwt', '', {
     httpOnly: true,
@@ -125,18 +123,16 @@ export const userLogout = async (req, res) => {
   });
 };
 
-
 export const userPurchaseCourse = async (req, res, next) => {
-  const { courseId } = req.params; 
+  const { courseId } = req.params;
 
   try {
-    
     const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "Please log in first",
+        message: 'Please log in first',
       });
     }
 
@@ -144,35 +140,33 @@ export const userPurchaseCourse = async (req, res, next) => {
     if (!course) {
       return res.status(404).json({
         success: false,
-        message: "Course not found",
+        message: 'Course not found',
       });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $addToSet: { purchasedCourses: courseId } }, 
-      { new: true } 
+      { $addToSet: { purchasedCourses: courseId } },
+      { new: true }
     );
 
     if (!updatedUser) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Course purchased successfully",
-      user: updatedUser, 
+      message: 'Course purchased successfully',
+      user: updatedUser,
     });
   } catch (error) {
-    console.error("Error purchasing course:", error);
-    next(error);  
+    console.error('Error purchasing course:', error);
+    next(error);
   }
 };
-
-
 
 export const userGetAllCourses = async (req, res) => {
   try {
@@ -182,23 +176,21 @@ export const userGetAllCourses = async (req, res) => {
     if (courses.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No courses available",
+        message: 'No courses available',
       });
     }
 
     // Send the list of courses to the client
     res.status(200).json({
       success: true,
-      message: "Courses fetched successfully",
+      message: 'Courses fetched successfully',
       courses,
     });
   } catch (error) {
-    console.error("Error fetching courses:", error);
-    next(error)
+    console.error('Error fetching courses:', error);
+    next(error);
   }
 };
-
-
 
 export const userGetPurchasedCourses = async (req, res) => {
   try {
@@ -207,7 +199,7 @@ export const userGetPurchasedCourses = async (req, res) => {
     if (!userId) {
       return res.status(404).json({
         success: false,
-        message: "Please log in first",
+        message: 'Please log in first',
       });
     }
 
@@ -217,41 +209,40 @@ export const userGetPurchasedCourses = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     if (user.purchasedCourses.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No purchased courses found",
+        message: 'No purchased courses found',
       });
     }
 
     // Send the list of purchased courses to the client
     res.status(200).json({
       success: true,
-      message: "Purchased courses fetched successfully",
+      message: 'Purchased courses fetched successfully',
       courses: user.purchasedCourses,
     });
   } catch (error) {
-    console.error("Error fetching purchased courses:", error);
+    console.error('Error fetching purchased courses:', error);
     res.status(500).json({
       success: false,
-      message: "Something went wrong. Please try again later.",
+      message: 'Something went wrong. Please try again later.',
     });
   }
 };
 
-
 export const userDeletePurchasedCourse = async (req, res) => {
-  const { courseId } = req.params; 
-  const userId = req.user?.userId; 
+  const { courseId } = req.params;
+  const userId = req.user?.userId;
 
   if (!userId) {
     return res.status(401).json({
       success: false,
-      message: "Please log in to delete purchased courses.",
+      message: 'Please log in to delete purchased courses.',
     });
   }
 
@@ -261,7 +252,7 @@ export const userDeletePurchasedCourse = async (req, res) => {
     if (!course) {
       return res.status(404).json({
         success: false,
-        message: "Course not found.",
+        message: 'Course not found.',
       });
     }
 
@@ -275,17 +266,17 @@ export const userDeletePurchasedCourse = async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({
         success: false,
-        message: "User not found.",
+        message: 'User not found.',
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Course removed from your purchased list.",
+      message: 'Course removed from your purchased list.',
       updatedUser,
     });
   } catch (error) {
-    console.error("Error deleting purchased course:", error);
-    next(error)
+    console.error('Error deleting purchased course:', error);
+    next(error);
   }
 };

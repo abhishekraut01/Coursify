@@ -11,14 +11,11 @@ const handleUserAuth = (req, res, next) => {
   }
 
   try {
-
     const decoded = jwt.verify(token, process.env.JWT_KEY);
     req.user = decoded;
 
     next();
-
   } catch (error) {
- 
     return res.status(403).json({
       success: false,
       message: 'Invalid or expired token. Please log in again.',

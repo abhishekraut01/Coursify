@@ -18,19 +18,19 @@ const userModel = new mongoose.Schema(
       type: String,
       required: true,
     },
-    profilePicture:{
-        type:String,
+    profilePicture: {
+      type: String,
     },
-    purchasedCourses:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Courses"
-        }
-    ]
+    purchasedCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Courses',
+      },
+    ],
   },
   { timestamps: true }
 );
 
-const User = mongoose.model('User',userModel)
+const User = mongoose.model('User', userModel);
 
-export default User
+export default User;
