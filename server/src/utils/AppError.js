@@ -6,7 +6,7 @@ class AppError extends Error {
      * @param {string} message - Error message
      * @param {number} statusCode - HTTP status code
      * @param {Array} errors - Additional error details
-     * @param {string} stack - Stack trace
+     * @param {string} stack - Stack trace 
      */
     constructor(
         message = "Internal server Error",
@@ -19,7 +19,7 @@ class AppError extends Error {
         this.success = false;
         this.errors = errors;
         this.isOperational = true;
-        
+
         // Handle the stack trace
         if (stack) {
             this.stack = stack;
@@ -29,4 +29,7 @@ class AppError extends Error {
     }
 }
 
-module.exports = AppError;
+export default AppError
+
+
+
