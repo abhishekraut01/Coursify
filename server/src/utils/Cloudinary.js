@@ -36,7 +36,6 @@ const uploadToCloudinary =async (localFilePath) =>{
         } catch (unlinkError) {
             console.error(`Failed to delete local file: ${localFilePath}`, unlinkError);
         }
-
         return null;
     }
 }
